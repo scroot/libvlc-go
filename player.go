@@ -7,22 +7,20 @@ package vlc
 #cgo windows LDFLAGS: -lvlc.x64.dll
 #include <vlc/vlc.h>
 #include <stdlib.h>
-
-void audio_play_cb(void *data, const void *samples, unsigned count, int64_t pts);
+extern void go_callback_samples(void *samples, int length);
+static void Audio_Play_Cb(void *data, const void *samples, unsigned count, int64_t pts){
+	go_callback_samples(samples, count);
+}
+static void setAudioCallback(libvlc_media_player_t *p_mi) {
+	libvlc_audio_set_callbacks(p_mi, Audio_Play_Cb, NULL,NULL,NULL,NULL,0);
+}
 */
 import "C"
-
 import (
 	"errors"
-	"github.com/mattn/go-pointer"
 	"unsafe"
+	"math"
 )
-
-//export audio_play_cb
-func audio_play_cb(data unsafe.Pointer, samples unsafe.Pointer, count uint, pts int64) {
-	_ := pointer.Restore(samples).([]byte)
-
-}
 
 // Player is a media player used to play a single media file.
 // For playing media lists (playlists) use ListPlayer instead.
@@ -43,6 +41,40 @@ func NewPlayer() (*Player, error) {
 	return nil, getError()
 }
 
+//export go_callback_samples
+func go_callback_samples(samples unsafe.Pointer, length C.int) {
+
+	//Sum dbVolume
+	size := int(length)
+	buf := C.GoBytes(samples, length)
+	var dbl,dbr int
+	var vall, valr int16
+	var suml, sumr float64
+	for i:=0;i<size; i+=4 {
+		a ,b ,c,d:= buf[i],buf[i+1],buf[i+2],buf[i+3]
+		vall, valr = int16(a<<16+b), int16(c<<16+d)
+		suml,sumr = suml+math.Abs( float64(vall)), sumr+math.Abs( float64( valr))
+	}
+	// Left
+	suml = suml/float64( size/2)
+	if suml > 0{
+		dbl = int( 20.0*math.Log10(suml))
+	}
+	// Rigth
+	sumr = sumr/float64(size/2)
+	if sumr > 0{
+		dbr = int( 20*math.Log10(sumr))
+	}
+
+
+	data:=DbVolume{dbl,dbr}
+	select {
+	case dbChan <- data:
+	default: //drop
+	}
+}
+
+
 // Release destroys the media player instance.
 func (p *Player) Release() error {
 	if p.player == nil {
@@ -55,11 +87,11 @@ func (p *Player) Release() error {
 	return getError()
 }
 
-func (p *Player) AudioSetPlayCallback() error {
+func (p *Player) EnabledAudioPlayCallback() error {
 	if p.player == nil {
 		return nil
 	}
-	C.libvlc_audio_set_callbacks(p.player, C.audio_play_cb, nil, nil, nil, nil, nil)
+	C.setAudioCallback(p.player)
 	return getError()
 }
 
@@ -353,3 +385,4 @@ func (p *Player) setMedia(m *Media) error {
 	C.libvlc_media_player_set_media(p.player, m.media)
 	return getError()
 }
+
