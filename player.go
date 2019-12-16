@@ -20,7 +20,7 @@ import (
 
 //export audio_play_cb
 func audio_play_cb(data unsafe.Pointer, samples unsafe.Pointer, count uint, pts int64) {
-	buf := pointer.Restore(samples).([]byte)
+	_ := pointer.Restore(samples).([]byte)
 
 }
 
