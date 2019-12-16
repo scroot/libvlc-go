@@ -14,8 +14,8 @@ import "C"
 
 import (
 	"errors"
-	"unsafe"
 	"github.com/mattn/go-pointer"
+	"unsafe"
 )
 
 //export audio_play_cb
@@ -29,7 +29,6 @@ func audio_play_cb(data unsafe.Pointer, samples unsafe.Pointer, count uint, pts 
 type Player struct {
 	player *C.libvlc_media_player_t
 }
-
 
 // NewPlayer creates an instance of a single-media player.
 func NewPlayer() (*Player, error) {
@@ -56,11 +55,11 @@ func (p *Player) Release() error {
 	return getError()
 }
 
-func (p *Player) AudioSetPlayCallback()error{
+func (p *Player) AudioSetPlayCallback() error {
 	if p.player == nil {
 		return nil
 	}
-	C.libvlc_audio_set_callbacks(p.player, C.audio_play_cb, nil nil,nil,nil,nil)
+	C.libvlc_audio_set_callbacks(p.player, C.audio_play_cb, nil, nil, nil, nil, nil)
 	return getError()
 }
 
