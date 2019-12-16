@@ -1,19 +1,35 @@
 package vlc
 
-// #cgo LDFLAGS: -lvlc
-// #include <vlc/vlc.h>
-// #include <stdlib.h>
+/*
+#cgo CFLAGS: -I.
+#cgo LDFLAGS: -L.
+#cgo linux LDFLAGS: -lvlc
+#cgo windows LDFLAGS: -lvlc.x64.dll
+#include <vlc/vlc.h>
+#include <stdlib.h>
+
+void audio_play_cb(void *data, const void *samples, unsigned count, int64_t pts);
+*/
 import "C"
+
 import (
 	"errors"
 	"unsafe"
+	"github.com/mattn/go-pointer"
 )
+
+//export audio_play_cb
+func audio_play_cb(data unsafe.Pointer, samples unsafe.Pointer, count uint, pts int64) {
+	buf := pointer.Restore(samples).([]byte)
+
+}
 
 // Player is a media player used to play a single media file.
 // For playing media lists (playlists) use ListPlayer instead.
 type Player struct {
 	player *C.libvlc_media_player_t
 }
+
 
 // NewPlayer creates an instance of a single-media player.
 func NewPlayer() (*Player, error) {
@@ -37,6 +53,14 @@ func (p *Player) Release() error {
 	C.libvlc_media_player_release(p.player)
 	p.player = nil
 
+	return getError()
+}
+
+func (p *Player) AudioSetPlayCallback() {
+	if p.player == nil {
+		return nil
+	}
+	C.libvlc_audio_set_callbacks(p.player, C.audio_play_cb, nil nil,nil,nil,nil)
 	return getError()
 }
 
@@ -278,6 +302,16 @@ func (p *Player) SetXWindow(windowID uint32) error {
 	}
 
 	C.libvlc_media_player_set_xwindow(p.player, C.uint(windowID))
+	return getError()
+}
+
+// SetWindowHwnd sets the Windows Hwnd to play on
+func (p *Player) SetWindowHwnd(hwnd uintptr) error {
+	if p.player == nil {
+		return errors.New("player must be initialized first")
+	}
+
+	C.libvlc_media_player_set_hwnd(p.player, unsafe.Pointer(hwnd))
 	return getError()
 }
 

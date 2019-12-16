@@ -4,6 +4,8 @@ libvlc-go
 [![License: MIT](https://img.shields.io/badge/license-MIT-red.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 [![Go Report Card](https://goreportcard.com/badge/github.com/adrg/libvlc-go)](https://goreportcard.com/report/github.com/adrg/libvlc-go)
 
+[![windown libc lib(https://github.com/RSATom/libvlc-sdk.git)]](https://github.com/RSATom/libvlc-sdk.git)
+
 Implements Golang bindings for libVLC version 2.X/3.X/4.X. The package can
 be useful for adding multimedia capabilities to applications through the
 provided player interfaces.

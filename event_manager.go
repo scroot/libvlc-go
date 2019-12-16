@@ -1,7 +1,10 @@
 package vlc
 
 /*
-#cgo LDFLAGS: -lvlc
+#cgo CFLAGS: -I.
+#cgo LDFLAGS: -L.
+#cgo linux LDFLAGS: -lvlc
+#cgo windows LDFLAGS: -lvlc.x64.dll
 #include <vlc/vlc.h>
 
 typedef const struct libvlc_event_t* clibvlc_event_t;
