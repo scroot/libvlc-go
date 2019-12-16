@@ -56,7 +56,7 @@ func (p *Player) Release() error {
 	return getError()
 }
 
-func (p *Player) AudioSetPlayCallback() {
+func (p *Player) AudioSetPlayCallback()error{
 	if p.player == nil {
 		return nil
 	}
